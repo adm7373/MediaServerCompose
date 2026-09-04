@@ -34,7 +34,7 @@ A complete media server solution built on Docker technology. This stack provides
   - [Plex](#plex-port-32400)
   - [Radarr](#radarr-port-7878)
   - [Sonarr](#sonarr-port-8989)
-  - [Overseerr](#overseerr-port-5055)
+  - [Seerr](#seerr-port-5055)
   - [Jackett](#jackett-port-9117)
   - [SABnzbd](#sabnzbd-port-8081)
   - [Tautulli](#tautulli-port-8181)
@@ -84,7 +84,7 @@ Instead of managing each service separately, you can start/stop/update everythin
 4. Update paths in `docker-compose.yml` (see [Configuration](#configuration))
 5. Create the required directories:
    ```bash
-   mkdir -p {plex,radarr,sonarr,overseerr,tautulli,jackett,sabnzbd,organizr,monitorr,netdata,speedtest-tracker,qbt,unpackerr}/config backup
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,monitorr,netdata,speedtest-tracker,qbt,unpackerr}/config backup
    ```
 6. Start everything:
    ```bash
@@ -107,7 +107,7 @@ The media server stack is built with a microservices architecture where each com
   - Can utilize GPU acceleration for faster transcoding
 
 #### Request & Discovery System
-- **Overseerr**: Front-end request management system
+- **Seerr**: Front-end request management system
   - Provides user-friendly interface for media requests
   - Integrates with Plex for library awareness
   - Forwards requests to appropriate services (Radarr/Sonarr)
@@ -197,7 +197,7 @@ The media server stack is built with a microservices architecture where each com
 
 1. **Media Request Flow**:
    ```
-   User → Overseerr → Radarr/Sonarr → Jackett → Download Clients → Media Library → Plex
+   User → Seerr → Radarr/Sonarr → Jackett → Download Clients → Media Library → Plex
    ```
 
 2. **Download Security Flow**:
@@ -313,7 +313,7 @@ If you choose not to use VPN:
 1. **Start the Stack**:
    ```bash
    # Create required directories
-   mkdir -p {plex,radarr,sonarr,overseerr,tautulli,jackett,sabnzbd,organizr,monitorr,netdata,speedtest-tracker,qbt,unpackerr}/config backup/config
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,monitorr,netdata,speedtest-tracker,qbt,unpackerr}/config backup/config
 
    # Start all services
    docker-compose up -d
@@ -332,7 +332,7 @@ If you choose not to use VPN:
    - Plex: http://localhost:32400/web
    - Radarr: http://localhost:7878
    - Sonarr: http://localhost:8989
-   - Overseerr: http://localhost:5055
+   - Seerr: http://localhost:5055
    - Tautulli: http://localhost:8181
    - Jackett: http://localhost:9117
    - SABnzbd: http://localhost:8081
@@ -361,8 +361,8 @@ If you choose not to use VPN:
    - Configure Jackett indexers
    - Test VPN connectivity through Gluetun
    - Configure service interconnections:
-     1. Add Plex to Overseerr (Settings → Plex → Add Server)
-     2. Add Radarr/Sonarr to Overseerr (Settings → Radarr/Sonarr → Add Server)
+     1. Add Plex to Seerr (Settings → Plex → Add Server)
+     2. Add Radarr/Sonarr to Seerr (Settings → Radarr/Sonarr → Add Server)
      3. Add Jackett indexers to Radarr/Sonarr (Settings → Indexers → Add → Torznab → Custom)
      4. Add download clients to Radarr/Sonarr:
         - qBittorrent via Gluetun (host: gluetun, port: 8080)
@@ -477,13 +477,14 @@ If you choose not to use VPN:
    - qBittorrent via Gluetun proxy (use the password you set in qBittorrent)
    - SABnzbd for Usenet
 
-### Overseerr (Port 5055)
+### Seerr (Port 5055)
 
-1. Access Overseerr at `http://localhost:5055`
-2. Connect to Plex server
-3. Link Radarr/Sonarr instances
-4. Configure user access
-5. Set up request limits
+1. Access Seerr at `http://localhost:5055`
+2. Select Plex as Server Type
+3. Connect to Plex server
+4. Link Radarr/Sonarr instances
+5. Configure user access
+6. Set up request limits
 
 ### Jackett (Port 9117)
 
@@ -519,7 +520,7 @@ If you choose not to use VPN:
    - Plex
    - Radarr
    - Sonarr
-   - Overseerr
+   - Seerr
    - Other services
 4. Configure authentication (recommended)
 5. Customize dashboard layout
@@ -596,7 +597,7 @@ Note: This service requires Radarr and Sonarr to be set up first, as it needs th
 | Unpackerr         | -     | Automatic extraction service        |
 | Radarr            | 7878  | Movie management                    |
 | Sonarr            | 8989  | TV show management                  |
-| Overseerr         | 5055  | Request management                  |
+| Seerr             | 5055  | Request management                  |
 | Tautulli          | 8181  | Plex statistics                     |
 | Jackett           | 9117  | Torrent indexer                     |
 | SABnzbd           | 8081  | Usenet downloader                   |
