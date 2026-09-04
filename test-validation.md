@@ -35,7 +35,7 @@ This validation process was specifically designed to:
 2. **Media Management**:
    - Radarr (automated movie downloads)
    - Sonarr (automated TV show downloads)
-   - Overseerr (media requests)
+   - Seerr (media requests)
 3. **Download Clients**:
    - qBittorrent (torrent downloads, VPN-protected)
    - SABnzbd (Usenet downloads)
@@ -73,7 +73,7 @@ The following logs detail our systematic testing process, including directory se
 - plex/config
 - radarr/config
 - sonarr/config
-- overseerr/config
+- seerr/config
 - tautulli/config
 - jackett/config
 - sabnzbd/config
@@ -160,7 +160,7 @@ Service Status:
 3. Media Server (plex): Running
 4. Movie Management (radarr): Running
 5. TV Management (sonarr): Running
-6. Media Requests (overseerr): Running
+6. Media Requests (seerr): Running
 7. Plex Monitoring (tautulli): Running
 8. Torrent Indexer (jackett): Running
 9. Usenet (sabnzbd): Running
@@ -180,7 +180,7 @@ Results:
 - Plex (32400)
 - Radarr (7878)
 - Sonarr (8989)
-- Overseerr (5055)
+- Seerr (5055)
 - Tautulli (8181)
 - Jackett (9117)
 - SABnzbd (8081)
@@ -305,7 +305,7 @@ Results:
 3. Media Server (plex)
 4. Movie Management (radarr)
 5. TV Management (sonarr)
-6. Media Requests (overseerr)
+6. Media Requests (seerr)
 7. Plex Monitoring (tautulli)
 8. Torrent Indexer (jackett)
 9. Usenet Downloader (sabnzbd)
