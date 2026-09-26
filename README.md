@@ -34,12 +34,11 @@ A complete media server solution built on Docker technology. This stack provides
   - [Plex](#plex-port-32400)
   - [Radarr](#radarr-port-7878)
   - [Sonarr](#sonarr-port-8989)
-  - [Overseerr](#overseerr-port-5055)
+  - [Seerr](#seerr-port-5055)
   - [Jackett](#jackett-port-9117)
   - [SABnzbd](#sabnzbd-port-8081)
   - [Tautulli](#tautulli-port-8181)
   - [Organizr](#organizr-port-8096)
-  - [Monitorr](#monitorr-port-8097)
   - [Netdata](#netdata-port-19999)
   - [OpenSpeedTest](#openspeedtest-port-3000)
   - [SpeedTest-Tracker](#speedtest-tracker-port-8765)
@@ -80,13 +79,16 @@ Instead of managing each service separately, you can start/stop/update everythin
    git clone https://github.com/flyryan/MediaServerCompose.git
    cd MediaServerCompose
    ```
-3. Set up Mullvad VPN (see [VPN Setup](#vpn-setup))
-4. Update paths in `docker-compose.yml` (see [Configuration](#configuration))
-5. Create the required directories:
+3. Copy `.env.example` to `.env` and fill in your settings:
    ```bash
-   mkdir -p {plex,radarr,sonarr,overseerr,tautulli,jackett,sabnzbd,organizr,monitorr,netdata,speedtest-tracker,qbt,unpackerr}/config backup
+   cp .env.example .env
    ```
-6. Start everything:
+   Edit `.env` with your user IDs, timezone, media paths, and Mullvad VPN keys (see [Configuration](#configuration)).
+4. Create the required directories:
+   ```bash
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,netdata,speedtest-tracker,qbt,unpackerr}/config backup
+   ```
+5. Start everything:
    ```bash
    docker-compose up -d
    ```
@@ -104,10 +106,12 @@ The media server stack is built with a microservices architecture where each com
   - Handles transcoding and streaming to various devices
   - Manages media libraries and metadata
   - Supports multiple users with different permissions
-  - Can utilize GPU acceleration for faster transcoding
+  - Note: This stack targets Raspberry Pi 5, which has no supported hardware
+    transcoding path for Plex, so transcoding runs in software on the CPU.
+    Prefer Direct Play/Direct Stream on clients where possible.
 
 #### Request & Discovery System
-- **Overseerr**: Front-end request management system
+- **Seerr**: Front-end request management system (merged successor to Overseerr and Jellyseerr)
   - Provides user-friendly interface for media requests
   - Integrates with Plex for library awareness
   - Forwards requests to appropriate services (Radarr/Sonarr)
@@ -154,11 +158,7 @@ The media server stack is built with a microservices architecture where each com
 ### Monitoring & Management
 
 #### System Monitoring
-- **Monitorr**: Service status dashboard
-  - Monitors all services' health
-  - Provides uptime tracking
-  - Alerts on service failures
-  - Shows quick status overview
+- **Organizr**: Service dashboard, also used for a quick status overview of all services
 
 - **Netdata**: System metrics collection
   - Real-time performance monitoring
@@ -197,7 +197,7 @@ The media server stack is built with a microservices architecture where each com
 
 1. **Media Request Flow**:
    ```
-   User → Overseerr → Radarr/Sonarr → Jackett → Download Clients → Media Library → Plex
+   User → Seerr → Radarr/Sonarr → Jackett → Download Clients → Media Library → Plex
    ```
 
 2. **Download Security Flow**:
@@ -238,10 +238,11 @@ The media server stack is built with a microservices architecture where each com
    - [macOS](https://docs.docker.com/desktop/mac/install/)
    - [Linux](https://docs.docker.com/engine/install/)
 
-   Note: For ARM64 systems (like Apple M1/M2 or Raspberry Pi):
-   - Most images are compatible but some may require specific ARM64 versions
-   - The Monitorr service currently uses an amd64 image which may have reduced performance on ARM systems
-   - Check the docker-compose.yml for platform-specific image tags
+   Note: This stack targets Raspberry Pi 5 (ARM64):
+   - All images used in this stack are multi-arch and have been verified to run on ARM64/Raspberry Pi
+   - Plex has no supported hardware transcoding path on Pi 5; all transcoding runs in software on the CPU
+   - If running from a microSD card, consider booting from NVMe/SSD (supported natively on Pi 5) to reduce
+     write wear from the frequent small writes made by the *arr apps, qBittorrent, and Plex's database
 
 2. **Install Docker Compose**
    - Usually included with Docker Desktop (Windows/macOS)
@@ -273,47 +274,44 @@ If you choose not to use VPN:
 
 ### Configuration
 
-1. **Find your user/group IDs**:
+1. **Copy the example environment file**:
+   ```bash
+   cp .env.example .env
+   ```
+   All secrets, IDs, timezone, and storage paths are managed in `.env`. The file is ignored by git so your credentials and paths are never committed.
+
+2. **Find your user/group IDs**:
    ```bash
    # Run these commands to get your user and group IDs:
    echo "PUID=$(id -u)"
    echo "PGID=$(id -g)"
    ```
-   Note: These IDs are critical for container permissions and must be set correctly for all services to:
-   - Access and modify media files
-   - Write to configuration directories
-   - Ensure consistent file ownership across all services
-   Common values are PUID=1000 and PGID=1000 for the first user created on Linux systems.
+   Set `PUID` and `PGID` in your `.env` file to match. These IDs ensure containers have the proper permissions to read/write media files and configuration directories.
 
-2. **Set your timezone**:
-   - Find your timezone from the [TZ database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-   - Example: `America/New_York`, `Europe/London`
-   Note: Some systems may require admin/sudo access to modify timezone settings. If you encounter permission errors, prefix commands with sudo.
+3. **Set your timezone**:
+   - Find your timezone from the [TZ database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (e.g., `America/New_York`, `Europe/London`)
+   - Set `TZ` in your `.env` file
 
-3. **Update docker-compose.yml**:
-   - Replace all `PUID` and `PGID` values with yours
-   - Replace all `TZ` values with your timezone
-   - Set your media paths in docker-compose.yml:
-     ```yaml
-     # Replace these example paths with your actual media directories:
-     /path/to/movies     # Where you want to store movies
-     /path/to/tv        # Where you want to store TV shows
-     /path/to/downloads # Where temporary downloads are stored
-     /path/to/backup    # Where configuration backups are stored
-     ```
-   - Add your Mullvad configuration:
-     ```yaml
-     WIREGUARD_PRIVATE_KEY: your_private_key_here
-     WIREGUARD_ADDRESSES: your_wireguard_address_here
-     SERVER_CITIES: Ashburn VA # Use proper case without underscores, e.g., Los Angeles, New York, London, Tokyo
-     ```
+4. **Set your storage paths in `.env`**:
+   ```bash
+   MOVIES_PATH=/path/to/media/movies     # Where you want to store movies
+   TV_PATH=/path/to/media/tv            # Where you want to store TV shows
+   DOWNLOADS_PATH=/path/to/downloads    # Where downloads are stored
+   ```
+
+5. **Add your Mullvad VPN credentials in `.env`**:
+   ```bash
+   WIREGUARD_PRIVATE_KEY=your_private_key_here
+   WIREGUARD_ADDRESSES=your_wireguard_address_here
+   SERVER_CITIES=Ashburn VA             # E.g. "Ashburn VA", "London", "Tokyo"
+   ```
 
 ### Launch and Initial Setup
 
 1. **Start the Stack**:
    ```bash
    # Create required directories
-   mkdir -p {plex,radarr,sonarr,overseerr,tautulli,jackett,sabnzbd,organizr,monitorr,netdata,speedtest-tracker,qbt,unpackerr}/config backup/config
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,netdata,speedtest-tracker,qbt,unpackerr}/config backup/config
 
    # Start all services
    docker-compose up -d
@@ -332,13 +330,12 @@ If you choose not to use VPN:
    - Plex: http://localhost:32400/web
    - Radarr: http://localhost:7878
    - Sonarr: http://localhost:8989
-   - Overseerr: http://localhost:5055
+   - Seerr: http://localhost:5055
    - Tautulli: http://localhost:8181
    - Jackett: http://localhost:9117
    - SABnzbd: http://localhost:8081
    - qBittorrent: http://localhost:8080 (or via VPN: http://localhost:8888/qbittorrent)
    - Organizr: http://localhost:8096
-   - Monitorr: http://localhost:8097
    - OpenSpeedTest: http://localhost:3000
    - SpeedTest-Tracker: http://localhost:8765
 
@@ -361,8 +358,8 @@ If you choose not to use VPN:
    - Configure Jackett indexers
    - Test VPN connectivity through Gluetun
    - Configure service interconnections:
-     1. Add Plex to Overseerr (Settings → Plex → Add Server)
-     2. Add Radarr/Sonarr to Overseerr (Settings → Radarr/Sonarr → Add Server)
+     1. Add Plex to Seerr (Settings → Plex → Add Server)
+     2. Add Radarr/Sonarr to Seerr (Settings → Radarr/Sonarr → Add Server)
      3. Add Jackett indexers to Radarr/Sonarr (Settings → Indexers → Add → Torznab → Custom)
      4. Add download clients to Radarr/Sonarr:
         - qBittorrent via Gluetun (host: gluetun, port: 8080)
@@ -477,9 +474,9 @@ If you choose not to use VPN:
    - qBittorrent via Gluetun proxy (use the password you set in qBittorrent)
    - SABnzbd for Usenet
 
-### Overseerr (Port 5055)
+### Seerr (Port 5055)
 
-1. Access Overseerr at `http://localhost:5055`
+1. Access Seerr at `http://localhost:5055`
 2. Connect to Plex server
 3. Link Radarr/Sonarr instances
 4. Configure user access
@@ -519,21 +516,10 @@ If you choose not to use VPN:
    - Plex
    - Radarr
    - Sonarr
-   - Overseerr
+   - Seerr
    - Other services
 4. Configure authentication (recommended)
 5. Customize dashboard layout
-
-### Monitorr (Port 8097)
-
-1. Access Monitorr at `http://localhost:8097`
-2. Add your services for monitoring:
-   - Plex
-   - Radarr
-   - Sonarr
-   - Other critical services
-3. Configure refresh intervals
-4. Set up notifications (optional)
 
 ### Netdata (Port 19999)
 
@@ -558,13 +544,13 @@ If you choose not to use VPN:
 ### SpeedTest-Tracker (Port 8765)
 
 1. Access SpeedTest-Tracker at `http://localhost:8765`
-2. Login with default credentials (if AUTH=true):
-   - Create your admin account on first login
+2. Login with default credentials (on first setup: `admin@example.com` / `password`):
+   - Immediately change your admin password in Settings
 3. Configure test schedule:
-   - Set automatic test intervals
-   - Choose preferred speedtest servers
-4. Set up notifications (optional)
-5. View historical speed test data
+   - Configured via `SPEEDTEST_SCHEDULE` in `docker-compose.yml` (default: every 6 hours) or inside settings
+   - Choose preferred Ookla speedtest servers
+4. Set up notifications (optional via Apprise, Discord, Telegram, etc.)
+5. View historical speed test data and latency metrics
 
 ### Unpackerr
 Note: This service requires Radarr and Sonarr to be set up first, as it needs their API keys to function.
@@ -573,10 +559,10 @@ Note: This service requires Radarr and Sonarr to be set up first, as it needs th
 2. Get their API keys from:
    - For Radarr: Settings → General → Security → API Key
    - For Sonarr: Settings → General → Security → API Key
-3. Update the docker-compose.yml with your API keys:
-   ```yaml
-   - UN_SONARR_0_API_KEY=your_sonarr_api_key_here
-   - UN_RADARR_0_API_KEY=your_radarr_api_key_here
+3. Update `.env` with your API keys:
+   ```bash
+   SONARR_API_KEY=your_sonarr_api_key_here
+   RADARR_API_KEY=your_radarr_api_key_here
    ```
 4. Start Unpackerr service:
    ```bash
@@ -596,13 +582,12 @@ Note: This service requires Radarr and Sonarr to be set up first, as it needs th
 | Unpackerr         | -     | Automatic extraction service        |
 | Radarr            | 7878  | Movie management                    |
 | Sonarr            | 8989  | TV show management                  |
-| Overseerr         | 5055  | Request management                  |
+| Seerr             | 5055  | Request management (Overseerr/Jellyseerr) |
 | Tautulli          | 8181  | Plex statistics                     |
 | Jackett           | 9117  | Torrent indexer                     |
 | SABnzbd           | 8081  | Usenet downloader                   |
 | qBittorrent       | 8080  | Torrent client (via VPN)            |
 | Organizr          | 8096  | Service dashboard                   |
-| Monitorr          | 8097  | Service monitoring                  |
 | Netdata           | 19999 | System metrics                      |
 | OpenSpeedTest     | 3000  | Network speed testing               |
 | SpeedTest-Tracker | 8765  | Speed test history                  |

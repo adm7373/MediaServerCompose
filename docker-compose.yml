@@ -16,45 +16,51 @@
 # Plex            | 32400 | Plex Media Server
 # Radarr          | 7878  | Movie management
 # Sonarr          | 8989  | TV Show management
-# Overseerr       | 5055  | Media request management
+# Seerr           | 5055  | Media request management (formerly Overseerr)
 # Tautulli        | 8181  | Plex statistics and monitoring
 # Jackett         | 9117  | Torrent tracker proxy
 # SABnzbd         | 8081  | Usenet downloader
 # Organizr        | 8096  | Web-based dashboard
-# Monitorr        | 8097  | Service status monitoring
 # OpenSpeedTest   | 3000  | Speed test (HTTP)
 #                 | 3001  | Speed test (HTTPS)
 # SpeedTest Track | 8765  | Speed test monitoring
 
 # SETUP INSTRUCTIONS
 # -----------------
-# 1. Replace all PUID/PGID values with your user/group IDs
+# 1. Copy .env.example to .env and fill in your values:
+#      cp .env.example .env
+#    All secrets, PUID/PGID, timezone, and host paths are configured there
+#    instead of directly in this file. `.env` is git-ignored so your real
+#    values are never committed.
+#
+# 2. In your .env file, set PUID/PGID to your user/group IDs
 #    Find these by running: id -u (for PUID) and id -g (for PGID)
 #
-# 2. Replace all timezone (TZ) values with your local timezone
+# 3. In your .env file, set TZ to your local timezone
 #    Format: Region/City (e.g., America/New_York, Europe/London)
 #    List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 #
-# 3. Replace all path placeholders with your actual paths:
-#    - /path/to/movies: Where your movies are stored
-#    - /path/to/tv: Where your TV shows are stored
-#    - /path/to/downloads: Where downloads should be stored
-#    - /path/to/media: Root media directory
-#    - /path/to/backup: Backup directory
+# 4. In your .env file, set the media/download path variables:
+#    - MOVIES_PATH: Where your movies are stored
+#    - TV_PATH: Where your TV shows are stored
+#    - DOWNLOADS_PATH: Where downloads should be stored
 #
-# 4. Configure Mullvad VPN (see MULLVAD VPN CONFIGURATION section below)
+# 5. Configure Mullvad VPN in your .env file (see MULLVAD VPN CONFIGURATION
+#    section below for how to obtain WIREGUARD_PRIVATE_KEY, WIREGUARD_ADDRESSES,
+#    and SERVER_CITIES)
 #
-# 5. Optional: If not using GPU transcoding in Plex, remove the GPU-related
-#    environment variables and devices section from the plex service. 
-#    IMPORTANT: You DO need the GPU variables for Intel Quick Sync CPUs!
+# 6. This stack targets Raspberry Pi 5, which has no supported hardware
+#    transcoding path for Plex. No GPU devices or vendor env vars are
+#    configured for Plex; all transcoding runs in software on the CPU.
+#    Configure Plex clients to use Direct Play/Direct Stream where possible.
 #
-# 6. Create required directories:
-#    mkdir -p {plex,radarr,sonarr,overseerr,tautulli,jackett,sabnzbd,organizr,monitorr,netdata,speedtest-tracker,qbt}/config
+# 7. Create required directories:
+#    mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,netdata,speedtest-tracker,qbt,unpackerr}/config
 #
-# 7. Start the stack:
+# 8. Start the stack:
 #    docker-compose up -d
 #
-# 8. Access services through their respective ports (see port mapping table above)
+# 9. Access services through their respective ports (see port mapping table above)
 
 # MULLVAD VPN CONFIGURATION
 # ------------------------
@@ -95,12 +101,12 @@ services:
     environment:
       - VPN_SERVICE_PROVIDER=mullvad
       - VPN_TYPE=wireguard
-      - WIREGUARD_PRIVATE_KEY=your_private_key_here  # Replace with your WireGuard private key
-      - WIREGUARD_ADDRESSES=your_wireguard_address_here  # Replace with your WireGuard address (e.g., 10.x.x.x/32)
-      - SERVER_CITIES=Ashburn VA  # Format: "City State" for US cities, just "City" for international
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - SERVER_CITIES=${SERVER_CITIES}  # Format: "City State" for US cities, just "City" for international
       - SOCKSPROXY=on
       - HTTPPROXY=on
-      - TZ=America/New_York
+      - TZ=${TZ}
     ports:
       - 8888:8888   # HTTP proxy
       - 8080:8080   # qBittorrent Web UI
@@ -118,12 +124,12 @@ services:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     environment:
-      - PUID=1000  # User ID
-      - PGID=1000  # Group ID
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - ./qbt/config:/config
-      - /path/to/downloads:/downloads  # Replace with your downloads directory path
+      - ${DOWNLOADS_PATH}:/downloads
     network_mode: "service:gluetun"  # Routes all traffic through VPN
     # If not using VPN, remove the network_mode line above and uncomment these ports:
     # ports:
@@ -134,24 +140,29 @@ services:
 
   # Media Server
   # -----------
-  # Plex Media Server with GPU acceleration support
+  # Plex Media Server
+  # NOTE: This stack targets Raspberry Pi 5, which has no hardware video
+  # transcoding path supported by Plex (no Quick Sync/NVENC/VCE, and the
+  # VideoCore VII GPU is not usable for Plex HW transcoding). GPU passthrough
+  # and Nvidia env vars have intentionally been omitted. All transcoding will
+  # run in software on the CPU, which is very limited on a Pi 5 - configure
+  # clients to use Direct Play/Direct Stream whenever possible and avoid
+  # relying on transcoding. If you move this stack to hardware with a
+  # supported GPU (Intel Quick Sync or Nvidia), re-add the appropriate
+  # devices/environment variables for that hardware.
   plex:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
     network_mode: bridge
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - VERSION=docker
-      - NVIDIA_VISIBLE_DEVICES=all####i#######  # Optional: Remove if not using GPU transcoding
-      - NVIDIA_DRIVER_CAPABILITIES=computevideoutility  # Optional: Remove if not using GPU transcoding
-    devices:
-      - /dev/dri:/dev/dri  # GPU passthrough (remove if not using GPU transcoding)
     volumes:
       - ./plex/config:/config
-      - /path/to/media/movies:/media/movies  # Replace with your movies directory path
-      - /path/to/media/tv:/media/tv  # Replace with your TV shows directory path
+      - ${MOVIES_PATH}:/media/movies
+      - ${TV_PATH}:/media/tv
     ports:
       - 32400:32400
     restart: unless-stopped
@@ -163,13 +174,13 @@ services:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - ./radarr/config:/config
-      - /path/to/media/movies:/movies  # Replace with your movies directory path
-      - /path/to/downloads:/downloads  # Replace with your downloads directory path
+      - ${MOVIES_PATH}:/movies
+      - ${DOWNLOADS_PATH}:/downloads
     ports:
       - 7878:7878
     restart: unless-stopped
@@ -181,29 +192,30 @@ services:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - ./sonarr/config:/config
-      - /path/to/media/tv:/tv  # Replace with your TV shows directory path
-      - /path/to/downloads:/downloads  # Replace with your downloads directory path
+      - ${TV_PATH}:/tv
+      - ${DOWNLOADS_PATH}:/downloads
     ports:
       - 8989:8989
     restart: unless-stopped
 
-  # Media Request System
-  # -------------------
+  # Media Request System (Seerr - merged Overseerr & Jellyseerr)
+  # -----------------------------------------------------------
   # Web-based interface for users to request new movies and TV shows
-  overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    container_name: overseerr
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    init: true
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - LOG_LEVEL=info
+      - TZ=${TZ}
+      - PORT=5055
     volumes:
-      - ./overseerr/config:/config
+      - ./seerr/config:/app/config
     ports:
       - 5055:5055
     restart: unless-stopped
@@ -215,9 +227,9 @@ services:
     image: lscr.io/linuxserver/tautulli:latest
     container_name: tautulli
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - ./tautulli/config:/config
     ports:
@@ -231,13 +243,13 @@ services:
     image: lscr.io/linuxserver/jackett:latest
     container_name: jackett
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - AUTO_UPDATE=true
     volumes:
       - ./jackett/config:/config
-      - /path/to/downloads:/downloads  # Replace with your downloads directory path
+      - ${DOWNLOADS_PATH}:/downloads
     ports:
       - 9117:9117
     restart: unless-stopped
@@ -249,12 +261,12 @@ services:
     image: lscr.io/linuxserver/sabnzbd:latest
     container_name: sabnzbd
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - ./sabnzbd/config:/config
-      - /path/to/downloads:/downloads  # Replace with your downloads directory path
+      - ${DOWNLOADS_PATH}:/downloads
     ports:
       - 8081:8080
     restart: unless-stopped
@@ -266,9 +278,9 @@ services:
     image: organizr/organizr:latest
     container_name: organizr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - ./organizr/config:/config
     ports:
@@ -283,38 +295,22 @@ services:
   # 1. Start the stack without worrying about Unpackerr
   # 2. Set up Sonarr and Radarr
   # 3. Get their API keys from Settings → General → Security → API Key
-  # 4. Update these environment variables with the API keys
+  # 4. Set SONARR_API_KEY and RADARR_API_KEY in your .env file
   # 5. Start Unpackerr
   unpackerr:
     image: golift/unpackerr
     container_name: unpackerr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - UN_LOG_FILE=/downloads/unpackerr.log
-      - UN_SONARR_0_URL=http://radarr:8989
-      - UN_SONARR_0_API_KEY=RADARR_API_HERE  # Get this from Sonarr after setup
-      - UN_RADARR_0_URL=http://sonarr:7878
-      - UN_RADARR_0_API_KEY=SONARR_API_HERE  # Get this from Radarr after setup
+      - UN_SONARR_0_URL=http://sonarr:8989
+      - UN_SONARR_0_API_KEY=${SONARR_API_KEY}
+      - UN_RADARR_0_URL=http://radarr:7878
+      - UN_RADARR_0_API_KEY=${RADARR_API_KEY}
     volumes:
-      - /path/to/downloads:/downloads  # Replace with your downloads directory path
-    restart: unless-stopped
-
-  # System Monitoring
-  # ---------------
-  # Service and system resource monitoring
-  monitorr:
-    image: monitorr/monitorr:latest
-    container_name: monitorr
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/New_York
-    volumes:
-      - ./monitorr/app:/app
-    ports:
-      - 8097:80
+      - ${DOWNLOADS_PATH}:/downloads
     restart: unless-stopped
 
   # System Metrics
@@ -355,18 +351,18 @@ services:
   # -----------------
   # Automated speed test monitoring and history
   speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
     container_name: speedtest-tracker
-    image: henrywhitaker3/speedtest-tracker:latest
     ports:
       - 8765:80
     volumes:
       - ./speedtest-tracker/config:/config
     environment:
-      - TZ=America/New_York
-      - PGID=1000
-      - PUID=1000
-      - AUTH=true
-      - OOKLA_EULA_GDPR=true
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - DB_CONNECTION=sqlite
+      - SPEEDTEST_SCHEDULE=0 */6 * * *
     logging:
       driver: "json-file"
       options:
