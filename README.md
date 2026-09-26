@@ -487,7 +487,9 @@ If you choose not to use VPN:
 1. Access Jackett at `http://localhost:9117`
 2. Add indexers
 3. Note the API key
-4. Configure proxies if needed
+4. Configure FlareSolverr if needed:
+   - FlareSolverr API URL: `http://flaresolverr:8191`
+   - Max Timeout: `60000` (ms)
 5. Add to Radarr/Sonarr
 
 ### SABnzbd (Port 8081)
@@ -571,6 +573,7 @@ Because static API keys are defined in `.env` and injected into `radarr` and `so
 | Seerr             | 5055  | Request management (Overseerr/Jellyseerr) |
 | Tautulli          | 8181  | Plex statistics                     |
 | Jackett           | 9117  | Torrent indexer                     |
+| FlareSolverr      | 8191  | Cloudflare bypass proxy for indexers |
 | SABnzbd           | 8081  | Usenet downloader                   |
 | qBittorrent       | 8080  | Torrent client (via VPN)            |
 | Organizr          | 8096  | Service dashboard                   |

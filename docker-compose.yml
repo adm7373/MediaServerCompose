@@ -19,6 +19,7 @@
 # Seerr           | 5055  | Media request management (formerly Overseerr)
 # Tautulli        | 8181  | Plex statistics and monitoring
 # Jackett         | 9117  | Torrent tracker proxy
+# FlareSolverr    | 8191  | Cloudflare challenge bypass proxy
 # SABnzbd         | 8081  | Usenet downloader
 # Organizr        | 8096  | Web-based dashboard
 # OpenSpeedTest   | 3000  | Speed test (HTTP)
@@ -258,6 +259,21 @@ services:
       - ${DOWNLOADS_PATH}:/downloads
     ports:
       - 9117:9117
+    restart: unless-stopped
+
+  # Cloudflare Challenge Solver
+  # --------------------------
+  # Proxy server to bypass Cloudflare protection for indexers (Jackett / Prowlarr)
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=false
+      - CAPTCHA_SOLVER=none
+      - TZ=${TZ}
+    ports:
+      - 8191:8191
     restart: unless-stopped
 
   # Usenet Downloader
