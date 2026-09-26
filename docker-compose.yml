@@ -127,10 +127,14 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - WEBUI_PORT=8080
     volumes:
       - ./qbt/config:/config
       - ${DOWNLOADS_PATH}:/downloads
     network_mode: "service:gluetun"  # Routes all traffic through VPN
+    depends_on:
+      gluetun:
+        condition: service_started
     # If not using VPN, remove the network_mode line above and uncomment these ports:
     # ports:
     #   - 8080:8080   # Web UI
@@ -159,6 +163,7 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
       - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}
     volumes:
       - ./plex/config:/config
       - ${MOVIES_PATH}:/media/movies
@@ -177,6 +182,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - RADARR__AUTH__APIKEY=${RADARR_API_KEY}
     volumes:
       - ./radarr/config:/config
       - ${MOVIES_PATH}:/movies
@@ -195,6 +201,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - SONARR__AUTH__APIKEY=${SONARR_API_KEY}
     volumes:
       - ./sonarr/config:/config
       - ${TV_PATH}:/tv
@@ -300,6 +307,9 @@ services:
   unpackerr:
     image: golift/unpackerr
     container_name: unpackerr
+    depends_on:
+      - sonarr
+      - radarr
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

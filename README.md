@@ -553,26 +553,12 @@ If you choose not to use VPN:
 5. View historical speed test data and latency metrics
 
 ### Unpackerr
-Note: This service requires Radarr and Sonarr to be set up first, as it needs their API keys to function.
+Unpackerr automatically extracts downloaded RAR/ZIP archives and notifies Sonarr/Radarr when complete.
 
-1. Set up Radarr and Sonarr first
-2. Get their API keys from:
-   - For Radarr: Settings → General → Security → API Key
-   - For Sonarr: Settings → General → Security → API Key
-3. Update `.env` with your API keys:
-   ```bash
-   SONARR_API_KEY=your_sonarr_api_key_here
-   RADARR_API_KEY=your_radarr_api_key_here
-   ```
-4. Start Unpackerr service:
-   ```bash
-   docker-compose up -d unpackerr
-   ```
-5. Unpackerr will automatically:
-   - Monitor your download directory
-   - Extract completed downloads
-   - Clean up archive files
-   - Notify Radarr/Sonarr when extraction is complete
+Because static API keys are defined in `.env` and injected into `radarr` and `sonarr` via environment variables (`RADARR__AUTH__APIKEY` and `SONARR__AUTH__APIKEY`), **Unpackerr works immediately on first startup** without needing manual API key copying.
+
+- Logs can be viewed at `${DOWNLOADS_PATH}/unpackerr.log` or via `docker-compose logs -f unpackerr`.
+- Default pre-configured API keys can be changed anytime in `.env`.
 
 ## Port Reference
 
