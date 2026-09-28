@@ -132,6 +132,8 @@ services:
     volumes:
       - ./qbt/config:/config
       - ${DOWNLOADS_PATH}:/downloads
+      - ${MOVIES_PATH}:/movies
+      - ${TV_PATH}:/tv
     network_mode: "service:gluetun"  # Routes all traffic through VPN
     depends_on:
       gluetun:
