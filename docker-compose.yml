@@ -354,6 +354,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /sys:/sys:ro
       - /dev/disk:/dev/disk:ro
+      # Expose the mergerfs mount so the FS tab reports its free/used space
+      # (Glances only sees filesystems inside its own mount namespace)
+      - /mnt/storage:/mnt/storage:ro
     pid: host
     network_mode: host
     privileged: true
