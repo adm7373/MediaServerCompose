@@ -25,6 +25,7 @@
 # OpenSpeedTest   | 3000  | Speed test (HTTP)
 #                 | 3001  | Speed test (HTTPS)
 # SpeedTest Track | 8765  | Speed test monitoring
+# Glances         | 61208 | System & container metrics
 
 # SETUP INSTRUCTIONS
 # -----------------
@@ -56,7 +57,7 @@
 #    Configure Plex clients to use Direct Play/Direct Stream where possible.
 #
 # 7. Create required directories:
-#    mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,netdata,speedtest-tracker,qbt,unpackerr}/config
+#    mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,speedtest-tracker,qbt,unpackerr}/config
 #
 # 8. Start the stack:
 #    docker-compose up -d
@@ -342,25 +343,20 @@ services:
 
   # System Metrics
   # -------------
-  # Real-time system metrics and monitoring
-  netdata:
-    image: netdata/netdata:latest
-    container_name: netdata-monitor
-    hostname: netdata
-    network_mode: host
-    cap_add:
-      - SYS_PTRACE
-      - SYS_ADMIN
-    security_opt:
-      - apparmor=unconfined
-    volumes:
-      - /etc/os-release:/host/etc/os-release:ro
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./netdata/config:/etc/netdata
+  # Lightweight system + container metrics (web UI on 61208)
+  # NOTE: uses host networking, so no `ports:` mapping is needed
+  glances:
+    image: nicolargo/glances:latest-full
+    container_name: glances
     environment:
-      - DOCKER_FROM_ENV=1
+      - GLANCES_OPT=-w
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /dev/disk:/dev/disk:ro
+    pid: host
+    network_mode: host
+    privileged: true
     restart: unless-stopped
 
   # Speed Testing

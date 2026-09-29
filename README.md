@@ -39,7 +39,7 @@ A complete media server solution built on Docker technology. This stack provides
   - [SABnzbd](#sabnzbd-port-8081)
   - [Tautulli](#tautulli-port-8181)
   - [Organizr](#organizr-port-8096)
-  - [Netdata](#netdata-port-19999)
+  - [Glances](#glances-port-61208)
   - [OpenSpeedTest](#openspeedtest-port-3000)
   - [SpeedTest-Tracker](#speedtest-tracker-port-8765)
   - [Unpackerr](#unpackerr)
@@ -86,7 +86,7 @@ Instead of managing each service separately, you can start/stop/update everythin
    Edit `.env` with your user IDs, timezone, media paths, and Mullvad VPN keys (see [Configuration](#configuration)).
 4. Create the required directories:
    ```bash
-   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,netdata,speedtest-tracker,qbt,unpackerr}/config backup
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,speedtest-tracker,qbt,unpackerr}/config backup
    ```
 5. Start everything:
    ```bash
@@ -160,7 +160,7 @@ The media server stack is built with a microservices architecture where each com
 #### System Monitoring
 - **Organizr**: Service dashboard, also used for a quick status overview of all services
 
-- **Netdata**: System metrics collection
+- **Glances**: Lightweight system & container metrics dashboard
   - Real-time performance monitoring
   - Resource usage tracking
   - Network statistics
@@ -311,7 +311,7 @@ If you choose not to use VPN:
 1. **Start the Stack**:
    ```bash
    # Create required directories
-   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,netdata,speedtest-tracker,qbt,unpackerr}/config backup/config
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,speedtest-tracker,qbt,unpackerr}/config backup/config
 
    # Start all services
    docker-compose up -d
@@ -523,16 +523,14 @@ If you choose not to use VPN:
 4. Configure authentication (recommended)
 5. Customize dashboard layout
 
-### Netdata (Port 19999)
+### Glances (Port 61208)
 
-1. Access Netdata at `http://localhost:19999`
-2. View real-time system metrics:
-   - CPU usage
-   - Memory usage
-   - Disk I/O
+1. Access Glances at `http://localhost:61208`
+2. View real-time metrics for the Pi and every container:
+   - CPU / memory per process and per container (Docker tab)
+   - Disk I/O and filesystem free/used space
    - Network traffic
-3. Configure alert notifications (optional)
-4. Set up custom dashboards (optional)
+3. No configuration required (no auth — keep it LAN-only)
 
 ### OpenSpeedTest (Port 3000)
 
@@ -577,7 +575,7 @@ Because static API keys are defined in `.env` and injected into `radarr` and `so
 | SABnzbd           | 8081  | Usenet downloader                   |
 | qBittorrent       | 8080  | Torrent client (via VPN)            |
 | Organizr          | 8096  | Service dashboard                   |
-| Netdata           | 19999 | System metrics                      |
+| Glances           | 61208 | System/container metrics            |
 | OpenSpeedTest     | 3000  | Network speed testing               |
 | SpeedTest-Tracker | 8765  | Speed test history                  |
 | Gluetun           | 8888  | VPN gateway                         |
