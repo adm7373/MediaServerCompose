@@ -23,6 +23,12 @@ services:
         description: Media request system
         healthcheck: http://nas.local:5055
 
+      - name: qBittorrent
+        icon: qbittorrent.png
+        url: http://nas.local:8080
+        description: Torrent client (via VPN)
+        healthcheck: http://nas.local:8080/api/v2/app/version
+
   - group: Automation
     items:
       - name: Radarr
@@ -43,6 +49,12 @@ services:
         description: Indexer proxy
         healthcheck: http://nas.local:9117
 
+      - name: SABnzbd
+        icon: sabnzbd.png
+        url: http://nas.local:8081
+        description: Usenet downloader (via VPN)
+        healthcheck: http://nas.local:8081/api/v2/defaults
+
   - group: Monitoring
     items:
       - name: Tautulli
@@ -57,22 +69,16 @@ services:
         description: System & container metrics
         healthcheck: http://nas.local:61208/ping
 
-      # ---- Tunnel-network services (NOT reachable by container name) ----
-      # qBittorrent and SABnzbd live in gluetun's network namespace; use the
-      # Pi's IP/hostname instead of the service name:
-      #
-      # - name: qBittorrent
-      #   icon: qbittorrent.png
-      #   url: http://nas.local:8080
-      #   description: Torrent client (via VPN)
-      #   # healthchecks need credentials:
-      #   # healthcheck: http://nas.local:8080/api/v2/app/version
-      #   # username: admin
-      #   # password: <your qbt password>
-      #
-      # - name: SABnzbd
-      #   icon: sabnzbd.png
-      #   url: http://nas.local:8081
-      #   description: Usenet downloader (via VPN)
+      - name: FlareSolverr
+        icon: flaresolverr.png
+        url: http://nas.local:8191
+        description: Cloudflare bypass proxy for indexers
+        healthcheck: http://nas.local:8191/status
+
+      - name: Homepage
+        icon: homepage.png
+        url: http://nas.local:3002
+        description: Service dashboard
+        healthcheck: http://nas.local:3002
 
 footer: Raspberry Pi 5 media server · Docker

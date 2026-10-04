@@ -77,7 +77,6 @@
 #    - A random server will be chosen from your list each time the container starts
 #    Example cities: "Ashburn VA,Atlanta GA,Chicago IL,Dallas TX"
 
-version: "3.8"
 services:
   # VPN Gateway (Optional but Highly Recommended)
   # -------------------------------------------
