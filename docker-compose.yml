@@ -298,15 +298,16 @@ services:
   # bookmarks, and widgets. Replaces Organizr.
   # NOTE: host port 3002 (container listens on 3000).
   #
-  # If you access Homepage through a reverse proxy, Tailscale, or a public
-  # hostname and it responds with "Forbidden" / 403, uncomment the line below
-  # and set it to that hostname (comma-separated if several):
-  #    - HOMEPAGE_ALLOWED_HOSTS=nas.local
+  # Host validation (DNS-rebinding protection): Homepage rejects any request
+  # whose Host header isn't in HOMEPAGE_ALLOWED_HOSTS. The value must match the
+  # host:port EXACTLY as you type it in the browser (e.g. nas.local:3002),
+  # comma-separated, no spaces. Set it in .env (see HOMEPAGE_ALLOWED_HOSTS).
   homepage:
     image: gethomepage/homepage:latest
     container_name: homepage
     environment:
       - TZ=${TZ}
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
     volumes:
       - ./homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro

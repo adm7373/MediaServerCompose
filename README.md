@@ -518,9 +518,11 @@ If you choose not to use VPN:
 4. Live container status: Homepage reads `/var/run/docker.sock`, so containers
    that are up/down show automatically in the built-in Docker section
 5. Add pages, widgets, and dark/light themes under Settings → Pages
-6. **If you see a "Forbidden"/403 page** when opening the dashboard through a
-   reverse proxy or Tailscale: set `HOMEPAGE_ALLOWED_HOSTS` to that hostname
-   in `docker-compose.yml` and recreate the container
+6. **If you see `{"error":"Host validation failed..."}`** when opening the
+   dashboard: Homepage blocks any Host header not in `HOMEPAGE_ALLOWED_HOSTS`
+   (a DNS-rebinding protection added in v1.0.0). Set it in `.env` to the exact
+   `host:port` you use — e.g. `HOMEPAGE_ALLOWED_HOSTS=nas.local:3002`
+   (comma-separated if several, no spaces) — then `docker compose up -d homepage`
 
 ### Glances (Port 61208)
 
