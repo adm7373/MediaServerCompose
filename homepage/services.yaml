@@ -1,13 +1,15 @@
 # Homepage service configuration
 # Docs: https://gethomepage.dev/configs/services/
 #
-# SCHEMA (getting this wrong makes Homepage fall back to its built-in
-# GitHub/Reddit/YouTube defaults, because the YAML fails to parse):
-#   services:            -> list
-#     - Group Name:      -> groups are TOP-LEVEL keys of the list
-#         - Service Name: -> services are keys inside the group list
-#             href: ...          (NOT `url`)
-#             siteMonitor: ...   (NOT `healthcheck`)
+# SCHEMA — the document itself IS the list. There is NO top-level `services:`
+# key: Homepage loads the file and immediately calls .map() on the parsed
+# document, so wrapping it in `services:` throws
+# "TypeError: b.map is not a function" and Homepage falls back to its built-in
+# GitHub/Reddit/YouTube defaults.
+#   - Group Name:        -> groups are TOP-LEVEL entries of the list
+#       - Service Name:  -> services are keys inside the group list
+#           href: ...          (NOT `url`)
+#           siteMonitor: ...   (NOT `healthcheck`)
 #
 # NOTE: URLs use "nas.local" as a placeholder — replace with your Pi's LAN
 # IP/hostname (or use 127.0.0.1 if you always browse the dashboard from the Pi).
@@ -17,7 +19,6 @@
 # They also require credentials, so by default they only show container status
 # (via the mounted Docker socket) instead of an HTTP siteMonitor.
 
-services:
   - Media:
       - Plex:
           icon: plex.png
