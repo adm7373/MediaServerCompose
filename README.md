@@ -1,6 +1,18 @@
 # DuffPlex Personal Media Server Stack
 
-A complete media server solution built on Docker technology. This stack provides everything you need to download, organize, and stream your media collection, all running in containers for easy setup and management.
+A complete, **VPN-tunnelled media server** in one repo: request, download (through WireGuard), organize, extract, and stream — Plex, Radarr, Sonarr, Seerr, qBittorrent, SABnzbd, Jackett, and more, all in containers, started with a single `docker compose up`.
+
+## Why This Stack
+
+Battle-tested on a Raspberry Pi 5 and designed around a few deliberate principles:
+
+- **VPN-first by default** — qBittorrent and SABnzbd run inside Gluetun's WireGuard (Mullvad) network namespace, so torrent and Usenet traffic is always tunneled — no leaks to your home IP — with a continuous healthcheck on the tunnel itself.
+- **Works out of the box** — static API keys in `.env` pre-wire Radarr, Sonarr, and Unpackerr to each other, and Homepage ships with a ready-made `services.yaml` including live service healthchecks. No copy-pasting API keys between web UIs.
+- **One request → watched movie** — Seerr requests flow automatically through Radarr/Sonarr → Jackett → qBittorrent/SABnzbd → Unpackerr (auto-extraction) → Plex. The whole chain runs with zero manual steps.
+- **Honest about the Pi** — built explicitly for a Pi 5 with no GPU: no fake transcoding flags, documented software-transcoding caveats, and a service lineup sized for 4–8 GB of RAM (lightweight Glances metrics instead of a heavy monitoring stack, log rotation on the busiest services).
+- **Everything in one `.env`** — secrets, user IDs, timezone, media paths, VPN keys, and API keys live in a single git-ignored file, with a fully commented `.env.example` template.
+- **External-storage friendly** — media and download paths are host variables, so it's designed for SSD/NVMe/mergerfs mounts from day one, not for stuffing media onto the boot drive.
+- **Painless updates** — `git pull && docker compose up -d` is the entire upgrade procedure; `restart: unless-stopped` on every service.
 
 ## Quick Navigation
 - [Quick Start](#quick-start)
@@ -12,6 +24,7 @@ A complete media server solution built on Docker technology. This stack provides
 
 ## Table of Contents
 
+- [Why This Stack](#why-this-stack)
 - [What is Docker?](#what-is-docker)
 - [Quick Start](#quick-start)
 - [Architecture Overview](#architecture-overview)
@@ -74,7 +87,7 @@ Instead of managing each service separately, you can start/stop/update everythin
 
 2. Clone this repository:
    ```bash
-   git clone https://github.com/flyryan/MediaServerCompose.git
+   git clone https://github.com/adm7373/MediaServerCompose.git
    cd MediaServerCompose
    ```
 3. Copy `.env.example` to `.env` and fill in your settings:
