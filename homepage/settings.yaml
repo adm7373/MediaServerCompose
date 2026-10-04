@@ -1,0 +1,24 @@
+# Homepage appearance and layout
+# Docs: https://gethomepage.dev/configs/settings/
+#
+# Layout group names must match the group keys in services.yaml, otherwise the
+# group falls back to the default single-column layout.
+---
+title: DuffPlex Media Server
+
+layout:
+  Media:
+    style: row
+    columns: 3
+  Automation:
+    style: row
+    columns: 4
+  Infrastructure:
+    style: row
+    columns: 4
+
+# Show a green/red dot instead of raw response times
+statusStyle: dot
+
+# Uncomment to hide the Homepage version footer
+# hideVersion: true

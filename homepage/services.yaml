@@ -1,84 +1,91 @@
-# Homepage starter configuration
-# Docs: https://gethomepage.dev
+# Homepage service configuration
+# Docs: https://gethomepage.dev/configs/services/
+#
+# SCHEMA (getting this wrong makes Homepage fall back to its built-in
+# GitHub/Reddit/YouTube defaults, because the YAML fails to parse):
+#   services:            -> list
+#     - Group Name:      -> groups are TOP-LEVEL keys of the list
+#         - Service Name: -> services are keys inside the group list
+#             href: ...          (NOT `url`)
+#             siteMonitor: ...   (NOT `healthcheck`)
 #
 # NOTE: URLs use "nas.local" as a placeholder — replace with your Pi's LAN
 # IP/hostname (or use 127.0.0.1 if you always browse the dashboard from the Pi).
 #
-# Services running inside the gluetun network namespace (qBittorrent, SABnzbd)
-# are NOT reachable by container name from this network — use the Pi's IP for
-# those (see commented examples at the bottom).
+# qBittorrent and SABnzbd run inside Gluetun's network namespace, so they are NOT
+# reachable by container name from this network — use the Pi's LAN hostname.
+# They also require credentials, so by default they only show container status
+# (via the mounted Docker socket) instead of an HTTP siteMonitor.
 
 services:
-  - group: Media
-    items:
-      - name: Plex
-        icon: plex.png
-        url: http://nas.local:32400/web
-        description: Plex Media Server
-        healthcheck: http://nas.local:32400/status?include=NotYetStarted,NullOrphaned
+  - Media:
+      - Plex:
+          icon: plex.png
+          href: http://nas.local:32400/web
+          description: Plex Media Server
+          siteMonitor: http://nas.local:32400/web
 
-      - name: Seerr
-        icon: seerr.png
-        url: http://nas.local:5055
-        description: Media request system
-        healthcheck: http://nas.local:5055
+      - Seerr:
+          icon: seerr.png
+          href: http://nas.local:5055
+          description: Media request system
+          siteMonitor: http://nas.local:5055
 
-      - name: qBittorrent
-        icon: qbittorrent.png
-        url: http://nas.local:8080
-        description: Torrent client (via VPN)
-        healthcheck: http://nas.local:8080/api/v2/app/version
+      - qBittorrent:
+          icon: qbittorrent.png
+          href: http://nas.local:8080
+          description: Torrent client (via VPN)
+          # qBittorrent requires auth even for /api/v2/app/version, so a
+          # siteMonitor needs credentials. Uncomment and fill these in:
+          # siteMonitor: http://nas.local:8080/api/v2/app/version
+          # siteMonitorBasicAuth: admin:your-qbt-password
 
-  - group: Automation
-    items:
-      - name: Radarr
-        icon: radarr.png
-        url: http://nas.local:7878
-        description: Movie manager
-        healthcheck: http://nas.local:7878
+  - Automation:
+      - Radarr:
+          icon: radarr.png
+          href: http://nas.local:7878
+          description: Movie manager
+          siteMonitor: http://nas.local:7878/ping
 
-      - name: Sonarr
-        icon: sonarr.png
-        url: http://nas.local:8989
-        description: TV show manager
-        healthcheck: http://nas.local:8989
+      - Sonarr:
+          icon: sonarr.png
+          href: http://nas.local:8989
+          description: TV show manager
+          siteMonitor: http://nas.local:8989/ping
 
-      - name: Jackett
-        icon: jackett.png
-        url: http://nas.local:9117
-        description: Indexer proxy
-        healthcheck: http://nas.local:9117
+      - Jackett:
+          icon: jackett.png
+          href: http://nas.local:9117
+          description: Indexer proxy
+          siteMonitor: http://nas.local:9117
 
-      - name: SABnzbd
-        icon: sabnzbd.png
-        url: http://nas.local:8081
-        description: Usenet downloader (via VPN)
-        healthcheck: http://nas.local:8081/api/v2/defaults
+      - SABnzbd:
+          icon: sabnzbd.png
+          href: http://nas.local:8081
+          description: Usenet downloader (via VPN)
+          # SABnzbd's API needs ?apikey=... on every request, so a siteMonitor
+          # needs your key. Uncomment and fill this in:
+          # siteMonitor: http://nas.local:8081/api/v2/version?apikey=YOUR_SABNZBD_API_KEY
 
-  - group: Monitoring
-    items:
-      - name: Tautulli
-        icon: plex.png
-        url: http://nas.local:8181
-        description: Plex statistics
-        healthcheck: http://nas.local:8181
+  - Infrastructure:
+      - Tautulli:
+          icon: tautulli.png
+          href: http://nas.local:8181
+          description: Plex statistics
+          siteMonitor: http://nas.local:8181
 
-      - name: Glances
-        icon: glances.png
-        url: http://nas.local:61208
-        description: System & container metrics
-        healthcheck: http://nas.local:61208/ping
+      - Glances:
+          icon: glances.png
+          href: http://nas.local:61208
+          description: System & container metrics
+          siteMonitor: http://nas.local:61208
 
-      - name: FlareSolverr
-        icon: flaresolverr.png
-        url: http://nas.local:8191
-        description: Cloudflare bypass proxy for indexers
-        healthcheck: http://nas.local:8191/status
+      - FlareSolverr:
+          href: http://nas.local:8191
+          description: Cloudflare bypass proxy for indexers
+          siteMonitor: http://nas.local:8191/status
 
-      - name: Homepage
-        icon: homepage.png
-        url: http://nas.local:3002
-        description: Service dashboard
-        healthcheck: http://nas.local:3002
-
-footer: Raspberry Pi 5 media server · Docker
+      - Homepage:
+          href: http://nas.local:3002
+          description: Service dashboard
+          siteMonitor: http://nas.local:3002
