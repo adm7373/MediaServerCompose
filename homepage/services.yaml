@@ -1,0 +1,84 @@
+# Homepage starter configuration
+# Docs: https://gethomepage.dev
+#
+# NOTE: URLs use "nas.local" as a placeholder — replace with your Pi's LAN
+# IP/hostname (or use 127.0.0.1 if you always browse the dashboard from the Pi).
+#
+# Services running inside the gluetun network namespace (qBittorrent, SABnzbd)
+# are NOT reachable by container name from this network — use the Pi's IP for
+# those (see commented examples at the bottom).
+
+services:
+  - group: Media
+    items:
+      - name: Plex
+        icon: plex.png
+        url: http://nas.local:32400/web
+        description: Plex Media Server
+        healthcheck: http://nas.local:32400/status?include=NotYetStarted,NullOrphaned
+
+      - name: Seerr
+        icon: seerr.png
+        url: http://nas.local:5055
+        description: Media request system
+        healthcheck: http://nas.local:5055
+
+  - group: Automation
+    items:
+      - name: Radarr
+        icon: radarr.png
+        url: http://nas.local:7878
+        description: Movie manager
+        healthcheck: http://nas.local:7878
+
+      - name: Sonarr
+        icon: sonarr.png
+        url: http://nas.local:8989
+        description: TV show manager
+        healthcheck: http://nas.local:8989
+
+      - name: Jackett
+        icon: jackett.png
+        url: http://nas.local:9117
+        description: Indexer proxy
+        healthcheck: http://nas.local:9117
+
+  - group: Monitoring
+    items:
+      - name: Tautulli
+        icon: plex.png
+        url: http://nas.local:8181
+        description: Plex statistics
+        healthcheck: http://nas.local:8181
+
+      - name: Glances
+        icon: glances.png
+        url: http://nas.local:61208
+        description: System & container metrics
+        healthcheck: http://nas.local:61208/ping
+
+      - name: SpeedTest Tracker
+        icon: speedtest-tracker.png
+        url: http://nas.local:8765
+        description: Bandwidth history
+        healthcheck: http://nas.local:8765
+
+      # ---- Tunnel-network services (NOT reachable by container name) ----
+      # qBittorrent and SABnzbd live in gluetun's network namespace; use the
+      # Pi's IP/hostname instead of the service name:
+      #
+      # - name: qBittorrent
+      #   icon: qbittorrent.png
+      #   url: http://nas.local:8080
+      #   description: Torrent client (via VPN)
+      #   # healthchecks need credentials:
+      #   # healthcheck: http://nas.local:8080/api/v2/app/version
+      #   # username: admin
+      #   # password: <your qbt password>
+      #
+      # - name: SABnzbd
+      #   icon: sabnzbd.png
+      #   url: http://nas.local:8081
+      #   description: Usenet downloader (via VPN)
+
+footer: Raspberry Pi 5 media server · Docker

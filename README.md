@@ -38,7 +38,7 @@ A complete media server solution built on Docker technology. This stack provides
   - [Jackett](#jackett-port-9117)
   - [SABnzbd](#sabnzbd-port-8081)
   - [Tautulli](#tautulli-port-8181)
-  - [Organizr](#organizr-port-8096)
+  - [Homepage](#homepage-port-3002)
   - [Glances](#glances-port-61208)
   - [OpenSpeedTest](#openspeedtest-port-3000)
   - [SpeedTest-Tracker](#speedtest-tracker-port-8765)
@@ -86,7 +86,7 @@ Instead of managing each service separately, you can start/stop/update everythin
    Edit `.env` with your user IDs, timezone, media paths, and Mullvad VPN keys (see [Configuration](#configuration)).
 4. Create the required directories:
    ```bash
-   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,speedtest-tracker,qbt,unpackerr}/config backup
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,speedtest-tracker,qbt,unpackerr}/config backup
    ```
 5. Start everything:
    ```bash
@@ -158,7 +158,7 @@ The media server stack is built with a microservices architecture where each com
 ### Monitoring & Management
 
 #### System Monitoring
-- **Organizr**: Service dashboard, also used for a quick status overview of all services
+- **Homepage**: Service dashboard with live container status (via Docker API) and healthchecks
 
 - **Glances**: Lightweight system & container metrics dashboard
   - Real-time performance monitoring
@@ -187,9 +187,10 @@ The media server stack is built with a microservices architecture where each com
   - Network reliability metrics
 
 #### Service Organization
-- **Organizr**: Unified web interface
-  - Single sign-on capability
-  - Customizable dashboard
+- **Homepage**: Unified web interface
+  - Live container status via Docker API
+  - Healthchecks and custom bookmarks
+  - Widget pages (CPU/RAM usage, media stats)
   - Service iframe integration
   - Access management
 
@@ -311,7 +312,7 @@ If you choose not to use VPN:
 1. **Start the Stack**:
    ```bash
    # Create required directories
-   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,speedtest-tracker,qbt,unpackerr}/config backup/config
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,speedtest-tracker,qbt,unpackerr}/config backup/config
 
    # Start all services
    docker-compose up -d
@@ -335,7 +336,7 @@ If you choose not to use VPN:
    - Jackett: http://localhost:9117
    - SABnzbd: http://localhost:8081
    - qBittorrent: http://localhost:8080 (or via VPN: http://localhost:8888/qbittorrent)
-   - Organizr: http://localhost:8096
+   - Homepage: http://localhost:3002
    - OpenSpeedTest: http://localhost:3000
    - SpeedTest-Tracker: http://localhost:8765
 
@@ -510,18 +511,20 @@ If you choose not to use VPN:
 4. Set up monitoring preferences
 5. Enable statistics collection
 
-### Organizr (Port 8096)
+### Homepage (Port 3002)
 
-1. Access Organizr at `http://localhost:8096`
-2. Complete initial setup wizard
-3. Add your media services as tabs:
-   - Plex
-   - Radarr
-   - Sonarr
-   - Seerr
-   - Other services
-4. Configure authentication (recommended)
-5. Customize dashboard layout
+1. Access Homepage at `http://localhost:3002`
+2. The starter `homepage/services.yaml` already lists the main services with
+   healthchecks — replace the `nas.local` placeholder with your Pi's
+   LAN IP/hostname
+3. Manage everything in `homepage/services.yaml` (edit → save → instant reload),
+   or via the UI under Settings
+4. Live container status: Homepage reads `/var/run/docker.sock`, so containers
+   that are up/down show automatically in the built-in Docker section
+5. Add pages, widgets, and dark/light themes under Settings → Pages
+6. **If you see a "Forbidden"/403 page** when opening the dashboard through a
+   reverse proxy or Tailscale: set `HOMEPAGE_ALLOWED_HOSTS` to that hostname
+   in `docker-compose.yml` and recreate the container
 
 ### Glances (Port 61208)
 
@@ -574,7 +577,7 @@ Because static API keys are defined in `.env` and injected into `radarr` and `so
 | FlareSolverr      | 8191  | Cloudflare bypass proxy for indexers |
 | SABnzbd           | 8081  | Usenet downloader                   |
 | qBittorrent       | 8080  | Torrent client (via VPN)            |
-| Organizr          | 8096  | Service dashboard                   |
+| Homepage          | 3002  | Service dashboard                   |
 | Glances           | 61208 | System/container metrics            |
 | OpenSpeedTest     | 3000  | Network speed testing               |
 | SpeedTest-Tracker | 8765  | Speed test history                  |

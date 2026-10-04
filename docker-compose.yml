@@ -21,9 +21,9 @@
 # Jackett         | 9117  | Torrent tracker proxy
 # FlareSolverr    | 8191  | Cloudflare challenge bypass proxy
 # SABnzbd         | 8081  | Usenet downloader
-# Organizr        | 8096  | Web-based dashboard
 # OpenSpeedTest   | 3000  | Speed test (HTTP)
 #                 | 3001  | Speed test (HTTPS)
+# Homepage        | 3002  | Service dashboard (live container status via Docker API)
 # SpeedTest Track | 8765  | Speed test monitoring
 # Glances         | 61208 | System & container metrics
 
@@ -57,7 +57,7 @@
 #    Configure Plex clients to use Direct Play/Direct Stream where possible.
 #
 # 7. Create required directories:
-#    mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,organizr,speedtest-tracker,qbt,unpackerr}/config
+#    mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,speedtest-tracker,qbt,unpackerr}/config
 #
 # 8. Start the stack:
 #    docker-compose up -d
@@ -298,18 +298,31 @@ services:
 
   # Service Dashboard
   # ---------------
-  # Web-based dashboard for organizing and accessing all services
-  organizr:
-    image: organizr/organizr:latest
-    container_name: organizr
+  # Modern web dashboard with live container status (via Docker API),
+  # bookmarks, and widgets. Replaces Organizr.
+  # NOTE: port 3002 because 3000/3001 are used by OpenSpeedTest.
+  #
+  # If you access Homepage through a reverse proxy, Tailscale, or a public
+  # hostname and it responds with "Forbidden" / 403, uncomment the line below
+  # and set it to that hostname (comma-separated if several):
+  #    - HOMEPAGE_ALLOWED_HOSTS=nas.local
+  homepage:
+    image: gethomepage/homepage:latest
+    container_name: homepage
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ./organizr/config:/config
+      - ./homepage:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /mnt/storage:/mnt/storage:ro
     ports:
-      - 8096:80
+      - 3002:3000
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: "200k"
+    restart: unless-stopped
     restart: unless-stopped
 
   # Automatic Extraction
