@@ -2,8 +2,7 @@
 #
 # This file contains the configuration for a personal media server stack using Docker Compose.
 # The stack includes services for VPN, torrent client, media server, media management, media request system,
-# Plex monitoring, torrent indexer, Usenet downloader, service dashboard, system monitoring, system metrics,
-# speed testing, and speed test tracking.
+# Plex monitoring, torrent indexer, Usenet downloader, service dashboard, and system metrics.
 #
 # Port Mappings
 # ----------------------------------------
@@ -21,10 +20,7 @@
 # Jackett         | 9117  | Torrent tracker proxy
 # FlareSolverr    | 8191  | Cloudflare challenge bypass proxy
 # SABnzbd         | 8081  | Usenet downloader
-# OpenSpeedTest   | 3000  | Speed test (HTTP)
-#                 | 3001  | Speed test (HTTPS)
 # Homepage        | 3002  | Service dashboard (live container status via Docker API)
-# SpeedTest Track | 8765  | Speed test monitoring
 # Glances         | 61208 | System & container metrics
 
 # SETUP INSTRUCTIONS
@@ -57,7 +53,7 @@
 #    Configure Plex clients to use Direct Play/Direct Stream where possible.
 #
 # 7. Create required directories:
-#    mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,speedtest-tracker,qbt,unpackerr}/config
+#    mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,qbt,unpackerr}/config
 #
 # 8. Start the stack:
 #    docker-compose up -d
@@ -300,7 +296,7 @@ services:
   # ---------------
   # Modern web dashboard with live container status (via Docker API),
   # bookmarks, and widgets. Replaces Organizr.
-  # NOTE: port 3002 because 3000/3001 are used by OpenSpeedTest.
+  # NOTE: host port 3002 (container listens on 3000).
   #
   # If you access Homepage through a reverse proxy, Tailscale, or a public
   # hostname and it responds with "Forbidden" / 403, uncomment the line below
@@ -375,36 +371,3 @@ services:
     privileged: true
     restart: unless-stopped
 
-  # Speed Testing
-  # ------------
-  # Network speed test server
-  openspeedtest:
-    image: openspeedtest/latest
-    container_name: openspeedtest
-    ports:
-      - 3000:3000  # HTTP
-      - 3001:3001  # HTTPS
-    restart: unless-stopped
-
-  # Speed Test Tracking
-  # -----------------
-  # Automated speed test monitoring and history
-  speedtest-tracker:
-    image: lscr.io/linuxserver/speedtest-tracker:latest
-    container_name: speedtest-tracker
-    ports:
-      - 8765:80
-    volumes:
-      - ./speedtest-tracker/config:/config
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - DB_CONNECTION=sqlite
-      - SPEEDTEST_SCHEDULE=0 */6 * * *
-    logging:
-      driver: "json-file"
-      options:
-        max-file: "10"
-        max-size: "200k"
-    restart: unless-stopped

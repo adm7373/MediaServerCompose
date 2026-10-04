@@ -57,12 +57,6 @@ services:
         description: System & container metrics
         healthcheck: http://nas.local:61208/ping
 
-      - name: SpeedTest Tracker
-        icon: speedtest-tracker.png
-        url: http://nas.local:8765
-        description: Bandwidth history
-        healthcheck: http://nas.local:8765
-
       # ---- Tunnel-network services (NOT reachable by container name) ----
       # qBittorrent and SABnzbd live in gluetun's network namespace; use the
       # Pi's IP/hostname instead of the service name:

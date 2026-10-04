@@ -40,8 +40,6 @@ A complete media server solution built on Docker technology. This stack provides
   - [Tautulli](#tautulli-port-8181)
   - [Homepage](#homepage-port-3002)
   - [Glances](#glances-port-61208)
-  - [OpenSpeedTest](#openspeedtest-port-3000)
-  - [SpeedTest-Tracker](#speedtest-tracker-port-8765)
   - [Unpackerr](#unpackerr)
 - [How Everything Works Together](#how-everything-works-together)
 - [Port Reference](#port-reference)
@@ -86,7 +84,7 @@ Instead of managing each service separately, you can start/stop/update everythin
    Edit `.env` with your user IDs, timezone, media paths, and Mullvad VPN keys (see [Configuration](#configuration)).
 4. Create the required directories:
    ```bash
-   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,speedtest-tracker,qbt,unpackerr}/config backup
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,qbt,unpackerr}/config backup
    ```
 5. Start everything:
    ```bash
@@ -172,19 +170,6 @@ The media server stack is built with a microservices architecture where each com
   - Generates viewing statistics
   - Monitors transcoding sessions
   - Provides notification system
-
-#### Network Performance
-- **OpenSpeedTest**: Network speed testing
-  - Local speed test server
-  - Bandwidth measurement
-  - Latency testing
-  - Cross-platform compatibility
-
-- **SpeedTest Tracker**: Speed monitoring
-  - Automated speed tests
-  - Historical speed data
-  - Performance trending
-  - Network reliability metrics
 
 #### Service Organization
 - **Homepage**: Unified web interface
@@ -312,7 +297,7 @@ If you choose not to use VPN:
 1. **Start the Stack**:
    ```bash
    # Create required directories
-   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,speedtest-tracker,qbt,unpackerr}/config backup/config
+   mkdir -p {plex,radarr,sonarr,seerr,tautulli,jackett,sabnzbd,qbt,unpackerr}/config backup/config
 
    # Start all services
    docker-compose up -d
@@ -337,8 +322,6 @@ If you choose not to use VPN:
    - SABnzbd: http://localhost:8081
    - qBittorrent: http://localhost:8080 (or via VPN: http://localhost:8888/qbittorrent)
    - Homepage: http://localhost:3002
-   - OpenSpeedTest: http://localhost:3000
-   - SpeedTest-Tracker: http://localhost:8765
 
    Note: If any service is not accessible, check its logs:
    ```bash
@@ -535,26 +518,6 @@ If you choose not to use VPN:
    - Network traffic
 3. No configuration required (no auth — keep it LAN-only)
 
-### OpenSpeedTest (Port 3000)
-
-1. Access OpenSpeedTest at `http://localhost:3000`
-2. Run speed tests to measure:
-   - Download speed
-   - Upload speed
-   - Latency
-3. No additional configuration required
-
-### SpeedTest-Tracker (Port 8765)
-
-1. Access SpeedTest-Tracker at `http://localhost:8765`
-2. Login with default credentials (on first setup: `admin@example.com` / `password`):
-   - Immediately change your admin password in Settings
-3. Configure test schedule:
-   - Configured via `SPEEDTEST_SCHEDULE` in `docker-compose.yml` (default: every 6 hours) or inside settings
-   - Choose preferred Ookla speedtest servers
-4. Set up notifications (optional via Apprise, Discord, Telegram, etc.)
-5. View historical speed test data and latency metrics
-
 ### Unpackerr
 Unpackerr automatically extracts downloaded RAR/ZIP archives and notifies Sonarr/Radarr when complete.
 
@@ -579,8 +542,6 @@ Because static API keys are defined in `.env` and injected into `radarr` and `so
 | qBittorrent       | 8080  | Torrent client (via VPN)            |
 | Homepage          | 3002  | Service dashboard                   |
 | Glances           | 61208 | System/container metrics            |
-| OpenSpeedTest     | 3000  | Network speed testing               |
-| SpeedTest-Tracker | 8765  | Speed test history                  |
 | Gluetun           | 8888  | VPN gateway                         |
 
 ## Updating
