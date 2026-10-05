@@ -311,6 +311,12 @@ services:
       - ./homepage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /mnt/storage:/mnt/storage:ro
+    # Docker's embedded DNS resolves compose service names, but .local/mDNS
+    # names are never forwarded into the container. `pi-host` maps to the host
+    # gateway so siteMonitor can reach services running with network_mode: host
+    # (Glances) or ports published by another container (qBittorrent via Gluetun).
+    extra_hosts:
+      - "pi-host:host-gateway"
     ports:
       - 3002:3000
     logging:

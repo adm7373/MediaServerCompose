@@ -16,9 +16,8 @@
 #                  (nas.local = placeholder; use your Pi's real hostname/IP).
 #   siteMonitor -> what HOMEPAGE fetches, from inside the homepage container,
 #                  over the compose network. Uses the container/service name and
-#                  the INTERNAL port, so it does not depend on mDNS/DNS of
-#                  nas.local resolving inside the container, and it reports the
-#                  container's real state rather than a published port mapping.
+#                  the INTERNAL port, so it reports the container's real state
+#                  rather than a published port mapping.
 #                  Homepage does not require siteMonitor to equal href.
 #
 # EXCEPTIONS (container name is NOT usable for these):
@@ -26,7 +25,14 @@
 #                  namespace and is unreachable by DNS name from homepage.
 #   Glances     -> network_mode: host, so it shares the host's network stack
 #                  and has no DNS name to resolve.
-#   Both fall back to the Pi's LAN address for the monitor as well.
+#   Both use `pi-host` instead: an extra_hosts alias for the host gateway
+#   (declared on the homepage service in docker-compose.yml).
+#
+# NEVER put a .local/mDNS name in a siteMonitor. Docker's embedded DNS resolves
+# compose service names only and does not forward mDNS, so a monitor like
+# http://nas.local:61208 fails inside the container with
+# "queryAaaa ENOTFOUND nas.local". `nas.local` is safe in href: only, because
+# that URL is opened by your browser and never fetched by the container.
 #
 # Services that need credentials (qBittorrent, SABnzbd) have no siteMonitor by
 # default — they still show live container status via the mounted Docker socket.
@@ -50,7 +56,7 @@
         description: Torrent client (via VPN)
         # No siteMonitor: not reachable by container name (Gluetun namespace)
         # AND /api/v2/app/version requires auth. To enable, uncomment:
-        # siteMonitor: http://nas.local:8080/api/v2/app/version
+        # siteMonitor: http://pi-host:8080/api/v2/app/version
         # siteMonitorBasicAuth: admin:your-qbt-password
 
 - Automation:
@@ -92,8 +98,10 @@
         icon: glances.png
         href: http://nas.local:61208
         description: System & container metrics
-        # network_mode: host — no DNS name, so the monitor uses the LAN address.
-        siteMonitor: http://glances:61208/api/4/status
+        # network_mode: host — `glances` does not resolve from this container,
+        # so point at the host-gateway alias instead. Keep in mind the API
+        # version is pinned in this path (v4); bump it if Glances moves to v5.
+        siteMonitor: http://pi-host:61208/api/4/status
 
     - FlareSolverr:
         href: http://nas.local:8191
