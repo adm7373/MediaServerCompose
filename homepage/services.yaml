@@ -93,12 +93,12 @@
         href: http://nas.local:61208
         description: System & container metrics
         # network_mode: host — no DNS name, so the monitor uses the LAN address.
-        siteMonitor: http://nas.local:61208
+        siteMonitor: http://glances:61208
 
     - FlareSolverr:
         href: http://nas.local:8191
         description: Cloudflare bypass proxy for indexers
-        siteMonitor: http://flaresolverr:8191/status
+        siteMonitor: http://flaresolverr:8191
 
     - Homepage:
         href: http://nas.local:3002
