@@ -93,7 +93,7 @@
         href: http://nas.local:61208
         description: System & container metrics
         # network_mode: host — no DNS name, so the monitor uses the LAN address.
-        siteMonitor: http://glances:61208
+        siteMonitor: http://glances:61208/api/4/status
 
     - FlareSolverr:
         href: http://nas.local:8191
