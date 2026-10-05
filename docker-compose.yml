@@ -365,6 +365,9 @@ services:
       # Expose the mergerfs mount so the FS tab reports its free/used space
       # (Glances only sees filesystems inside its own mount namespace)
       - /mnt/storage:/mnt/storage:ro
+      # Required: the fs plugin hides non-physical types (e.g. fuse.mergerfs)
+      # unless they are allow-listed here.
+      - ./glances/glances.conf:/etc/glances/glances.conf:ro
     pid: host
     network_mode: host
     privileged: true

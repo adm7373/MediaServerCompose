@@ -1,6 +1,7 @@
 .env
 
 # Runtime config/data written by containers on first boot (never commit).
+# NOTE: glances/ holds tracked config (glances.conf) and is NOT ignored.
 # Tracked on purpose: homepage/services.yaml + homepage/settings.yaml
 plex/config/
 radarr/config/
@@ -12,7 +13,6 @@ sabnzbd/config/
 qbt/config/
 unpackerr/
 speedtest-tracker/
-glances/
 flaresolverr/
 
 # Homepage auto-generates these when missing; keep them local only
