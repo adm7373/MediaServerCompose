@@ -511,13 +511,28 @@ If you choose not to use VPN:
 
 1. Access Homepage at `http://localhost:3002`
 2. The starter `homepage/services.yaml` already lists the main services with
-   healthchecks — replace the `nas.local` placeholder with your Pi's
-   LAN IP/hostname
-3. Manage everything in `homepage/services.yaml` (edit → save → instant reload),
+   healthchecks — replace the `nas.local` placeholder in the `href:` values
+   with your Pi's LAN IP/hostname (the healthchecks themselves use container
+   names and need no changes).
+3. `services.yaml` deliberately uses two URLs per service:
+   - `href:` — opened by **your browser**, so it keeps the friendly `nas.local`
+     hostname.
+   - `siteMonitor:` — fetched by **Homepage from inside its own container**, so
+     it uses the container name and the *internal* port (e.g.
+     `http://radarr:7878/ping`, `http://homepage:3000`). This avoids depending on
+     mDNS resolving inside the container and checks the container directly
+     rather than a published port mapping.
+
+   Two services cannot be addressed by container name and fall back to the LAN
+   address for their monitor: **qBittorrent** (`network_mode: service:gluetun`)
+   and **Glances** (`network_mode: host`). qBittorrent and SABnzbd also need API
+   credentials, so they show live container status via the Docker socket instead
+   of an HTTP monitor until you uncomment the example in `services.yaml`.
+4. Manage everything in `homepage/services.yaml` (edit → save → instant reload),
    or via the UI under Settings
-4. Live container status: Homepage reads `/var/run/docker.sock`, so containers
+5. Live container status: Homepage reads `/var/run/docker.sock`, so containers
    that are up/down show automatically in the built-in Docker section
-5. Add pages, widgets, and dark/light themes under Settings → Pages
+6. Add pages, widgets, and dark/light themes under Settings → Pages
 6. **If you see `{"error":"Host validation failed..."}`** when opening the
    dashboard: Homepage blocks any Host header not in `HOMEPAGE_ALLOWED_HOSTS`
    (a DNS-rebinding protection added in v1.0.0). Set it in `.env` to the exact
