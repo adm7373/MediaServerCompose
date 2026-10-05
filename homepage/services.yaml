@@ -111,5 +111,9 @@
     - Homepage:
         href: http://nas.local:3002
         description: Service dashboard
-        # Internal port is 3000 (3002 is only the host mapping).
-        siteMonitor: http://homepage:3000
+        # Loopback on purpose. Homepage's own host validation rejects requests
+        # whose Host header is not in HOMEPAGE_ALLOWED_HOSTS, so a self-monitor
+        # addressed as http://homepage:3000 fails with
+        # "Host validation failed for: homepage:3000" and would force you to add
+        # homepage:3000 to the allow-list. 127.0.0.1:3000 is always permitted.
+        siteMonitor: http://127.0.0.1:3000
