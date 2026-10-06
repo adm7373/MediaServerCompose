@@ -162,6 +162,7 @@ services:
       - TZ=${TZ}
       - VERSION=docker
       - PLEX_CLAIM=${PLEX_CLAIM}
+      - ADVERTISE_IP=http://nas.local:32400
     volumes:
       - ./plex/config:/config
       - ${MOVIES_PATH}:/media/movies
